@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f1c2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Apex Live" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <style>
     :root{
@@ -24,6 +26,7 @@
     h3{margin:0 0 8px 0;font-size:14px;color:var(--muted)}
     .tag{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;display:inline-block;margin:2px 6px 2px 0}
     .chips{display:flex;flex-wrap:wrap}
+    .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--muted);font-size:12px}
     .risk-low{color:#a7f3d0}.risk-medium{color:#fbbf24}.risk-high{color:#f87171}
     .barwrap{height:14px;background:var(--chip);border:1px solid var(--line);border-radius:10px;overflow:hidden}
     .bar{height:100%;width:0%;background:linear-gradient(90deg,#284a80,var(--accent));transition:width 900ms cubic-bezier(.2,.7,.2,1)}
@@ -35,7 +38,28 @@
     .mermaid{overflow:auto}
     a.btn{color:#dfe9ff;text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px}
     .footer{margin:16px 0;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
-    .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--muted);font-size:12px}
+
+    /* Animations & refresh flash */
+    .flash { box-shadow: 0 0 0 0 rgba(76,111,168,.9); animation: flash 950ms ease-out 1; }
+    @keyframes flash {
+      0% { box-shadow: 0 0 0 0 rgba(76,111,168,.9); }
+      70%{ box-shadow: 0 0 18px 6px rgba(76,111,168,.45); }
+      100%{ box-shadow: 0 0 0 0 rgba(76,111,168,0); }
+    }
+    .changed { transition: color .35s ease; color:#a7d6ff !important; }
+
+    /* Refresh button + spinner */
+    .right{display:flex;align-items:center;gap:8px}
+    button.refresh{
+      background:transparent;border:1px solid var(--line);color:#e8eef5;border-radius:8px;
+      padding:8px 12px;font-size:13px
+    }
+    .spin{
+      width:16px;height:16px;border-radius:50%;
+      border:2px solid rgba(223,233,255,.25);border-top-color:#dfe9ff;
+      animation:spin 1s linear infinite; display:none;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -45,7 +69,11 @@
       <h1>⟁∞ WARREN EDWARD TREPP ∞⟁ — Apex Live</h1>
       <div class="badge">Apex Framework Architect • Creator of Hyper‑Life Systems</div>
     </div>
-    <div class="badge" id="updated">Loading…</div>
+    <div class="right">
+      <div class="badge" id="updated">Loading…</div>
+      <div class="spin" id="spinner" aria-hidden="true"></div>
+      <button class="refresh" id="refreshBtn" type="button">Refresh Now</button>
+    </div>
   </header>
 
   <!-- Session -->
@@ -60,7 +88,7 @@
 
   <!-- Metrics -->
   <div class="grid two" style="margin-top:12px">
-    <div class="panel">
+    <div class="panel" id="momPanel">
       <h2>Momentum</h2>
       <div style="display:flex;align-items:center;gap:10px;margin:6px 0 8px">
         <span id="momScore" style="font-size:22px">—%</span>
@@ -70,7 +98,7 @@
       <div class="barwrap"><div id="momBar" class="bar"></div></div>
       <div class="badge" id="momNotes" style="margin-top:8px">—</div>
     </div>
-    <div class="panel">
+    <div class="panel" id="healthPanel">
       <h2>Health Snapshot</h2>
       <div class="list" id="healthList"></div>
     </div>
@@ -78,29 +106,29 @@
 
   <!-- Probabilities & Forks -->
   <div class="grid two" style="margin-top:12px">
-    <div class="panel">
+    <div class="panel" id="pathsPanel">
       <h2 id="probmap">Three‑Path Outlook</h2>
       <div id="paths" class="chips"></div>
     </div>
-    <div class="panel">
+    <div class="panel" id="forksPanel">
       <h2 id="forks">Fork Scan</h2>
       <div id="forkList" class="list"></div>
     </div>
   </div>
 
   <!-- Diagram -->
-  <div class="panel" style="margin-top:12px">
+  <div class="panel" id="diagramPanel" style="margin-top:12px">
     <h2>Trajectory Diagram</h2>
     <div id="diagram" class="mermaid">graph TD; A[Loading…];</div>
   </div>
 
   <!-- Insights & Actions -->
   <div class="grid two" style="margin-top:12px">
-    <div class="panel">
+    <div class="panel" id="insightsPanel">
       <h2>Insights</h2>
       <ul id="insights" style="margin:0 0 4px 16px; padding:0"></ul>
     </div>
-    <div class="panel">
+    <div class="panel" id="actionsPanel">
       <h2>Next Actions</h2>
       <ol id="nextActions" style="margin:0 0 0 18px; padding:0"></ol>
     </div>
@@ -113,7 +141,7 @@
   </div>
 </div>
 
-<!-- Inline data (fallback if DATA_URL is empty or fails) -->
+<!-- Inline data fallback (used if no continuity.json is present) -->
 <script id="continuity-inline" type="application/json">
 {
   "session": {
@@ -152,15 +180,18 @@
 }
 </script>
 
-<!-- Mermaid + App -->
+<!-- Mermaid + App Logic (combined, auto-detect live JSON) -->
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
   mermaid.initialize({ startOnLoad: false, theme: "dark" });
 
-  // ► If you want LIVE updates from a separate file, set this to your Pages URL.
-  // Example: const DATA_URL = "https://YourUser.github.io/Apex-live/continuity.json";
-  // ► If you want single-file only, leave it as "" and it will use the inline JSON block above.
-  const DATA_URL = "";
+  /* CONFIG
+     The page tries to load ./continuity.json (same folder).
+     If found → auto-refresh every REFRESH_INTERVAL_MS.
+     If not found → uses the inline JSON above; manual Refresh Now still works.
+  */
+  const DATA_URL = "./continuity.json";
+  const REFRESH_INTERVAL_MS = 180_000; // 3 minutes
 
   const el = id => document.getElementById(id);
   const riskClass = (risk) => {
@@ -171,12 +202,8 @@
   const trendSpan = (t) => {
     if(!t || t === "—") return "—";
     const num = parseFloat(t);
-    if (!isNaN(num)) {
-      return num >= 0 ? `<span class="trend up">▲ +${num}%</span>` : `<span class="trend down">▼ ${num}%</span>`;
-    }
-    return t.trim().startsWith("+")
-      ? `<span class="trend up">▲ ${t}</span>`
-      : `<span class="trend down">▼ ${t.replace('-', '')}</span>`;
+    if (!isNaN(num)) return num >= 0 ? `<span class="trend up">▲ +${num}%</span>` : `<span class="trend down">▼ ${num}%</span>`;
+    return t.trim().startsWith("+") ? `<span class="trend up">▲ ${t}</span>` : `<span class="trend down">▼ ${t.replace('-', '')}</span>`;
   };
   const buildMermaidFromForks = (forks=[]) => {
     const nodes = forks.map((f,i)=> {
@@ -197,83 +224,103 @@ flowchart TD
     `;
   };
 
-  async function fetchData() {
+  let diagramKey = "";
+  let liveMode = false; // flips to true if external JSON is reachable
+
+  async function fetchExternal() {
     try {
-      if (DATA_URL) {
-        const res = await fetch(DATA_URL, {cache:"no-store"});
-        if (!res.ok) throw new Error("Fetch failed");
-        return await res.json();
-      }
-    } catch (e) {
-      console.warn("Falling back to inline data:", e.message);
-    }
-    const text = el("continuity-inline").textContent.trim();
-    return JSON.parse(text);
+      const res = await fetch(`${DATA_URL}?t=${Date.now()}`, {cache:"no-store"});
+      if (!res.ok) throw new Error("status " + res.status);
+      return await res.json();
+    } catch (e) { return null; }
+  }
+  function fetchInline() {
+    const text = document.getElementById("continuity-inline")?.textContent?.trim();
+    return JSON.parse(text || "{}");
   }
 
-  async function main(){
-    const data = await fetchData();
+  function flashOnce(node){ if(!node) return; node.classList.add('flash'); setTimeout(()=>node.classList.remove('flash'), 1000); }
+  function setHTML(id, html){
+    const node = el(id);
+    if (!node) return;
+    if (String(node.innerHTML).trim() !== String(html).trim()) { node.innerHTML = html; flashOnce(node); }
+  }
+  function showSpinner(ms=1000){
+    const spinner = el("spinner");
+    spinner.style.display = "inline-block";
+    setTimeout(()=>{ spinner.style.display = "none"; }, ms);
+  }
 
-    // Session
+  async function render(data){
     const s = data.session || {};
     el("title").textContent  = s.title || "Apex Live Blueprint";
     el("owner").textContent  = s.owner || "—";
     el("role").textContent   = s.role  || "—";
     el("updated").textContent= "Updated: " + new Date(s.lastUpdated || Date.now()).toLocaleString();
-    el("mode").textContent   = "Mode: " + (s.mode || "—");
+    el("mode").textContent   = "Mode: " + (s.mode || (liveMode ? "live" : "inline"));
     el("sessionId").textContent = s.session_id || "—";
 
-    // Momentum
     const m = data.momentum || {};
     const score = Math.max(0, Math.min(100, Number(m.score || 0)));
     el("momScore").textContent  = `${score}%`;
     el("momStatus").textContent = m.status || "—";
     el("momTrend").innerHTML    = trendSpan(m.trend || "—");
     el("momNotes").textContent  = m.notes || "—";
-    requestAnimationFrame(()=>{ document.getElementById("momBar").style.width = score + "%"; });
+    requestAnimationFrame(()=>{ el("momBar").style.width = score + "%"; });
 
-    // Health
-    const health = data.health || {};
-    const healthItems = [];
-    if (health.sleep)     healthItems.push(`<div class="tag">Sleep: ${health.sleep}</div>`);
-    if (health.nutrition) healthItems.push(`<div class="tag">Nutrition: ${health.nutrition}</div>`);
-    if (health.mobility)  healthItems.push(`<div class="tag">Mobility: ${health.mobility}</div>`);
-    if (health.dopamine)  healthItems.push(`<div class="tag">Dopamine: ${health.dopamine}</div>`);
-    if (health.stress)    healthItems.push(`<div class="tag">Stress: ${health.stress}</div>`);
-    document.getElementById("healthList").innerHTML = healthItems.join(" ") || '<span class="badge">No health data</span>';
+    const h = data.health || {};
+    const healthHTML = [
+      h.sleep     ? `<div class="tag">Sleep: ${h.sleep}</div>` : "",
+      h.nutrition ? `<div class="tag">Nutrition: ${h.nutrition}</div>` : "",
+      h.mobility  ? `<div class="tag">Mobility: ${h.mobility}</div>` : "",
+      h.dopamine  ? `<div class="tag">Dopamine: ${h.dopamine}</div>` : "",
+      h.stress    ? `<div class="tag">Stress: ${h.stress}</div>` : ""
+    ].filter(Boolean).join(" ") || '<span class="badge">No health data</span>';
+    setHTML("healthList", healthHTML);
 
-    // Paths (three‑path outlook from forks)
     const forks = Array.isArray(data.forkScan) ? data.forkScan : [];
     const top3  = [...forks].sort((a,b)=> (b.probability||0) - (a.probability||0)).slice(0,3);
-    document.getElementById("paths").innerHTML = top3.map(f =>
+    setHTML("paths", top3.map(f =>
       `<span class="tag ${riskClass(f.risk)}">${f.label}: ${f.probability || 0}% — ${f.impact}</span>`
-    ).join(" ") || '<span class="badge">No path data</span>';
+    ).join(" ") || '<span class="badge">No path data</span>');
 
-    // Fork list
-    document.getElementById("forkList").innerHTML = forks.map(f => `
+    setHTML("forkList", forks.map(f => `
       <div class="fork">
         <div class="lbl">${f.label}</div>
         <div class="meta ${riskClass(f.risk)}">${f.impact} • Risk: ${f.risk} • P: ${f.probability || 0}%</div>
       </div>
-    `).join("") || '<span class="badge">No forks yet</span>';
+    `).join("") || '<span class="badge">No forks yet</span>');
 
-    // Insights / Actions
-    const ins = Array.isArray(data.insights) ? data.insights : [];
-    document.getElementById("insights").innerHTML = ins.map(i => `<li>${i}</li>`).join("") || '<li>No insights yet</li>';
-    const acts = Array.isArray(data.nextActions) ? data.nextActions : [];
-    document.getElementById("nextActions").innerHTML = acts.map(a => `<li>${a}</li>`).join("") || '<li>No actions yet</li>';
-
-    // Diagram
-    const graphTxt = buildMermaidFromForks(forks);
-    const { svg } = await mermaid.render("apexGraph", graphTxt);
-    document.getElementById("diagram").innerHTML = svg;
+    const newKey = JSON.stringify(forks.map(f=>[f.label,f.impact,f.risk,f.probability]));
+    if (newKey !== diagramKey) {
+      const graphTxt = buildMermaidFromForks(forks);
+      const { svg } = await mermaid.render("apexGraph", graphTxt);
+      el("diagram").innerHTML = svg;
+      diagramKey = newKey;
+    }
   }
 
-  main().catch(err => {
-    console.error(err);
-    document.getElementById("updated").textContent = "Error loading data";
-  });
+  async function tick(){
+    showSpinner(1000); // show ~1s each fetch
+    const ext = await fetchExternal();
+    liveMode = !!ext;
+    await render(ext || fetchInline());
+  }
+
+  // First load
+  tick();
+
+  // Manual refresh
+  el("refreshBtn").addEventListener("click", tick);
+
+  // Auto-refresh (only if external JSON reachable on first check)
+  (async ()=>{
+    const ext = await fetchExternal();
+    liveMode = !!ext;
+    if (liveMode && REFRESH_INTERVAL_MS > 0) {
+      setInterval(tick, REFRESH_INTERVAL_MS);
+    }
+  })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
-</body>
 </html>
