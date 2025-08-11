@@ -1,0 +1,21 @@
+{
+  "lastUpdated": "2025-08-11T11:00:00Z",
+  "momentum": {
+    "value": 82,
+    "trend": "+6",
+    "status": "High",
+    "note": "Strong upward momentum; next 14 days carry the highest leverage."
+  },
+  "health": {
+    "sleep": "7.5h — consistent",
+    "nutrition": "High protein, steady carbs, micronutrient coverage",
+    "mobility": "Daily stretch + 3× strength",
+    "dopamine": "Regulated via 2× deep-work blocks",
+    "stress": "Low and stable"
+  },
+  "outlook": [
+    { "path": "Fork A", "days": 14, "prob": 64, "status": "High" },
+    { "path": "Fork B", "days": 60, "prob": 23, "status": "Medium" },
+    { "path": "Fork C", "days": 120, "prob": 13, "status": "Very High" }
+  ]
+}
