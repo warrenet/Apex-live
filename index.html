@@ -1,170 +1,278 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Apex Live Blueprint — W.E. Trepp</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" />
-<style>
-  :root{
-    --bg:#0f1c2e;--fg:#e8eef5;--muted:#98a6bd;--line:#2a446b;
-    --panel:#122940;--chip:#0c1d2f;--accent:#4c6fa8;
-  }
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);
-    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
-  .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
-  header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
-  h1{font-size:18px;margin:0} .badge{font-size:12px;color:var(--muted)}
-  .grid{display:grid;gap:12px}
-  @media (min-width:860px){.grid{grid-template-columns:1fr 1fr}}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
-  h2,h3{margin:0 0 10px 0;font-size:16px}
-  .metric{display:flex;gap:8px;flex-wrap:wrap}
-  .tag{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px}
-  .risk-low{color:#a7f3d0}.risk-medium{color:#fbbf24}.risk-high{color:#f87171}
-  a.btn{color:#dfe9ff;text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px}
-  .footer{margin:16px 0;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
-  pre{white-space:pre-wrap;word-wrap:break-word;background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px}
-  .mermaid{overflow:auto}
-</style>
+  <meta charset="utf-8" />
+  <title>Apex Live Blueprint — W.E. Trepp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1c2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <style>
+    :root{
+      --bg:#0f1c2e;--fg:#e8eef5;--muted:#98a6bd;--line:#2a446b;
+      --panel:#122940;--chip:#0c1d2f;--accent:#4c6fa8;--ok:#00b87a;--warn:#fbbf24;--danger:#f87171;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+    h1{font-size:18px;margin:0} .badge{font-size:12px;color:var(--muted)}
+    .grid{display:grid;gap:12px}
+    @media (min-width:880px){.grid.two{grid-template-columns:1fr 1fr}}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+    h2{margin:0 0 8px 0;font-size:16px}
+    h3{margin:0 0 8px 0;font-size:14px;color:var(--muted)}
+    .tag{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;display:inline-block;margin:2px 6px 2px 0}
+    .chips{display:flex;flex-wrap:wrap}
+    .risk-low{color:#a7f3d0}.risk-medium{color:#fbbf24}.risk-high{color:#f87171}
+    .barwrap{height:14px;background:var(--chip);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+    .bar{height:100%;width:0%;background:linear-gradient(90deg,#284a80,var(--accent));transition:width 900ms cubic-bezier(.2,.7,.2,1)}
+    .trend{font-variant-numeric:tabular-nums}
+    .trend.up{color:var(--ok)} .trend.down{color:var(--danger)}
+    .list{display:grid;gap:6px}
+    .fork{display:flex;justify-content:space-between;align-items:center;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+    .fork .lbl{color:var(--fg)} .fork .meta{color:var(--muted)}
+    .mermaid{overflow:auto}
+    a.btn{color:#dfe9ff;text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px}
+    .footer{margin:16px 0;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--muted);font-size:12px}
+  </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>⟁∞ WARREN EDWARD TREPP ∞⟁ — Apex Live Blueprint</h1>
+      <h1>⟁∞ WARREN EDWARD TREPP ∞⟁ — Apex Live</h1>
       <div class="badge">Apex Framework Architect • Creator of Hyper‑Life Systems</div>
     </div>
     <div class="badge" id="updated">Loading…</div>
   </header>
 
-  <div class="grid">
-    <div class="panel">
-      <h2 id="probmap">Probability Map</h2>
-      <div id="probmapList"></div>
+  <!-- Session -->
+  <div class="panel">
+    <div class="chips">
+      <span class="pill" id="title">Apex Live Blueprint</span>
+      <span class="pill" id="owner">—</span>
+      <span class="pill" id="role">—</span>
+      <span class="pill" id="mode">Mode: —</span>
     </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="grid two" style="margin-top:12px">
     <div class="panel">
-      <h2>Live Metrics</h2>
-      <div class="metric">
-        <div class="tag">Momentum: <span id="momentum">—</span>%</div>
-        <div class="tag">Pressure: <span id="pressure">—</span>%</div>
-        <div class="tag">Energy: <span id="energy">—</span>%</div>
-        <div class="tag">Dopamine: <span id="dopamine">—</span>%</div>
+      <h2>Momentum</h2>
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 8px">
+        <span id="momScore" style="font-size:22px">—%</span>
+        <span id="momStatus" class="tag">—</span>
+        <span id="momTrend" class="trend">—</span>
       </div>
+      <div class="barwrap"><div id="momBar" class="bar"></div></div>
+      <div class="badge" id="momNotes" style="margin-top:8px">—</div>
+    </div>
+    <div class="panel">
+      <h2>Health Snapshot</h2>
+      <div class="list" id="healthList"></div>
     </div>
   </div>
 
-  <div class="panel" style="margin-top:12px">
-    <h2>Live Diagram</h2>
-    <div id="diagram" class="mermaid">graph TD; A[Loading diagram…];</div>
-  </div>
-
-  <div class="grid" style="margin-top:12px">
+  <!-- Probabilities & Forks -->
+  <div class="grid two" style="margin-top:12px">
+    <div class="panel">
+      <h2 id="probmap">Three‑Path Outlook</h2>
+      <div id="paths" class="chips"></div>
+    </div>
     <div class="panel">
       <h2 id="forks">Fork Scan</h2>
-      <div id="forkList"></div>
-    </div>
-    <div class="panel">
-      <h2>Hazards & Mitigations</h2>
-      <div id="hazards"></div>
+      <div id="forkList" class="list"></div>
     </div>
   </div>
 
-  <div class="grid" style="margin-top:12px">
+  <!-- Diagram -->
+  <div class="panel" style="margin-top:12px">
+    <h2>Trajectory Diagram</h2>
+    <div id="diagram" class="mermaid">graph TD; A[Loading…];</div>
+  </div>
+
+  <!-- Insights & Actions -->
+  <div class="grid two" style="margin-top:12px">
     <div class="panel">
-      <h3>Today’s High‑Leverage Move</h3>
-      <div id="leverage">—</div>
-      <h3 style="margin-top:10px">Next Three</h3>
-      <div id="nextThree"></div>
+      <h2>Insights</h2>
+      <ul id="insights" style="margin:0 0 4px 16px; padding:0"></ul>
     </div>
     <div class="panel">
-      <h3>Highlights (Last Changes)</h3>
-      <pre id="highlights">—</pre>
+      <h2>Next Actions</h2>
+      <ol id="nextActions" style="margin:0 0 0 18px; padding:0"></ol>
     </div>
   </div>
 
   <div class="footer">
-    View: <a class="btn" href="#probmap">Probmap</a> <a class="btn" href="#forks">Forks</a>
-    • Mode: <span id="mode">—</span> • Session: <span id="session">—</span>
+    <a class="btn" href="#probmap">Probmap</a>
+    <a class="btn" href="#forks">Forks</a>
+    <span class="badge">Session: <span id="sessionId">—</span></span>
   </div>
 </div>
 
+<!-- Inline data (fallback if DATA_URL is empty or fails) -->
+<script id="continuity-inline" type="application/json">
+{
+  "session": {
+    "title": "Apex Live Blueprint",
+    "owner": "⟁∞ Warren Edward Trepp ∞⟁",
+    "role": "Apex Framework Architect — Creator of Hyper-Life Systems",
+    "lastUpdated": "2025-08-11T18:00:00Z",
+    "mode": "full",
+    "session_id": "inline-000"
+  },
+  "momentum": { "score": 82, "status": "High", "trend": "+6", "notes": "Strong upward momentum; next 14 days carry the highest leverage." },
+  "forkScan": [
+    { "label": "Fork A (14d)",  "impact": "High",      "risk": "Medium", "probability": 64 },
+    { "label": "Fork B (60d)",  "impact": "Medium",    "risk": "Low",    "probability": 23 },
+    { "label": "Fork C (120d)", "impact": "Very High", "risk": "High",   "probability": 13 }
+  ],
+  "health": {
+    "sleep": "7.5h — consistent",
+    "nutrition": "High protein, steady carbs, micronutrient coverage",
+    "mobility": "Daily stretch + 3× strength",
+    "dopamine": "Regulated via 2× deep-work blocks",
+    "stress": "Low and stable"
+  },
+  "insights": [
+    "Early-day deep work drives the majority of compounding gains.",
+    "Fork A aligns with energy profile; risk is acceptable.",
+    "Hazards drop when evening plan ritual is consistent.",
+    "Alliances unlock the fastest path to accelerated track."
+  ],
+  "nextActions": [
+    "Lock 90-minute deep work at 07:30 for 10 days.",
+    "Evening plan ritual (10 min) to cut friction by 8–12%.",
+    "Outreach to alliance X and propose joint sprint.",
+    "Run hazard simulation on Fork C and prepare counter."
+  ]
+}
+</script>
+
+<!-- Mermaid + App -->
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
   mermaid.initialize({ startOnLoad: false, theme: "dark" });
 
-  // TODO: after enabling GitHub Pages, replace <your-user> with your GitHub username:
-  const DATA_URL = "https://<your-user>.github.io/apex-live/continuity.json";
+  // ► If you want LIVE updates from a separate file, set this to your Pages URL.
+  // Example: const DATA_URL = "https://YourUser.github.io/Apex-live/continuity.json";
+  // ► If you want single-file only, leave it as "" and it will use the inline JSON block above.
+  const DATA_URL = "";
 
-  const el = (id)=>document.getElementById(id);
-  const riskClass = r => !r ? "" : (r.toLowerCase().includes("high") ? "risk-high" : r.toLowerCase().includes("medium") ? "risk-medium" : "risk-low");
-
-  const buildMermaid = () => `
+  const el = id => document.getElementById(id);
+  const riskClass = (risk) => {
+    if(!risk) return "";
+    const r = risk.toLowerCase();
+    return r.includes("high") ? "risk-high" : r.includes("medium") ? "risk-medium" : "risk-low";
+  };
+  const trendSpan = (t) => {
+    if(!t || t === "—") return "—";
+    const num = parseFloat(t);
+    if (!isNaN(num)) {
+      return num >= 0 ? `<span class="trend up">▲ +${num}%</span>` : `<span class="trend down">▼ ${num}%</span>`;
+    }
+    return t.trim().startsWith("+")
+      ? `<span class="trend up">▲ ${t}</span>`
+      : `<span class="trend down">▼ ${t.replace('-', '')}</span>`;
+  };
+  const buildMermaidFromForks = (forks=[]) => {
+    const nodes = forks.map((f,i)=> {
+      const id = `F${i}`;
+      const label = `${f.label}\\nImpact: ${f.impact}\\nRisk: ${f.risk}\\nP: ${f.probability || 0}%`;
+      return `${id}["${label}"]:::${(f.risk||'').toLowerCase().includes('high')?'risk':'alt'}`;
+    }).join("\n  ");
+    const edges = forks.map((f,i)=> `A --> F${i}`).join("\n  ");
+    return `
 flowchart TD
-  A[⟁∞ W.E. TREPP ∞⟁<br/>▲ Apex Framework Architect]:::core --> B{▲ APEX CALIBRATION}:::core
-  B --> C[INITIALIZATION]:::core
-  C --> D[PERSONA COUNCIL]:::core
-  D --> E[TREE OF THOUGHT]:::core
-  E --> F[CHAIN OF THOUGHT]:::core
-  F --> G[PERSONA CONVERGENCE]:::core
-  G --> H[▲ MOMENTUM MAP ▸ ◆ Apex]:::core
-  H --> I[REAL‑TIME LOGS]:::support
-  H --> J[TRACKERS & PROJECTIONS ▸ Momentum ▸ Pattern Web ▸ Three‑Path ▸ Impact Chain]:::support
-  J --> K[META LOOPS ×3 ▸ 10/10]:::core
-  K --> L[HEALTH & PERFORMANCE]:::core
-  L --> M[WHAT’S NEXT HUB (probmap/heatmap)]:::core
-  M --> N[ADAPTIVE INTELLIGENCE (Continuity)]:::core
-  N --> O[ELITE ENGINES]:::core
-  O --> P[POST‑SESSION DEBRIEF]:::core
+  A[Current Trajectory]:::core
+  ${nodes ? nodes : 'F0["No forks found"]:::alt'}
+  ${edges || 'A --> F0'}
   classDef core fill:#0f1c2e,stroke:#2a446b,color:#e8eef5,stroke-width:2px;
-  classDef support fill:#122940,stroke:#2a446b,color:#e8eef5,stroke-width:1.5px;
-`;
+  classDef alt fill:#0d2034,stroke:#4c6fa8,color:#dfe9ff,stroke-width:1.6px;
+  classDef risk fill:#3a0f12,stroke:#b94747,color:#ffe7e7,stroke-width:2px;
+  linkStyle default stroke:#2a446b,stroke-width:1.4px;
+    `;
+  };
+
+  async function fetchData() {
+    try {
+      if (DATA_URL) {
+        const res = await fetch(DATA_URL, {cache:"no-store"});
+        if (!res.ok) throw new Error("Fetch failed");
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn("Falling back to inline data:", e.message);
+    }
+    const text = el("continuity-inline").textContent.trim();
+    return JSON.parse(text);
+  }
 
   async function main(){
-    const res = await fetch(DATA_URL, {cache:"no-store"});
-    const data = await res.json();
+    const data = await fetchData();
 
-    // Meta
-    el("updated").textContent = `Updated: ${new Date(data.meta?.updated_at || Date.now()).toLocaleString()}`;
-    el("mode").textContent = data.meta?.mode || "—";
-    el("session").textContent = data.meta?.session_id || "—";
+    // Session
+    const s = data.session || {};
+    el("title").textContent  = s.title || "Apex Live Blueprint";
+    el("owner").textContent  = s.owner || "—";
+    el("role").textContent   = s.role  || "—";
+    el("updated").textContent= "Updated: " + new Date(s.lastUpdated || Date.now()).toLocaleString();
+    el("mode").textContent   = "Mode: " + (s.mode || "—");
+    el("sessionId").textContent = s.session_id || "—";
 
-    // Metrics
-    el("momentum").textContent = Math.round((data.scores?.momentum ?? 0));
-    el("pressure").textContent = Math.round((data.scores?.pressure ?? 0));
-    el("energy").textContent = Math.round((data.scores?.energy ?? 0));
-    el("dopamine").textContent = Math.round((data.scores?.dopamine_budget ?? 0));
+    // Momentum
+    const m = data.momentum || {};
+    const score = Math.max(0, Math.min(100, Number(m.score || 0)));
+    el("momScore").textContent  = `${score}%`;
+    el("momStatus").textContent = m.status || "—";
+    el("momTrend").innerHTML    = trendSpan(m.trend || "—");
+    el("momNotes").textContent  = m.notes || "—";
+    requestAnimationFrame(()=>{ document.getElementById("momBar").style.width = score + "%"; });
 
-    // Probmap
-    el("probmapList").innerHTML = (data.probmap || []).map(p =>
-      `<div class="tag ${riskClass(p.risk)}">${p.name}: ${(p.likelihood*100).toFixed(0)}% — ${p.label}</div>`
-    ).join(" ");
+    // Health
+    const health = data.health || {};
+    const healthItems = [];
+    if (health.sleep)     healthItems.push(`<div class="tag">Sleep: ${health.sleep}</div>`);
+    if (health.nutrition) healthItems.push(`<div class="tag">Nutrition: ${health.nutrition}</div>`);
+    if (health.mobility)  healthItems.push(`<div class="tag">Mobility: ${health.mobility}</div>`);
+    if (health.dopamine)  healthItems.push(`<div class="tag">Dopamine: ${health.dopamine}</div>`);
+    if (health.stress)    healthItems.push(`<div class="tag">Stress: ${health.stress}</div>`);
+    document.getElementById("healthList").innerHTML = healthItems.join(" ") || '<span class="badge">No health data</span>';
 
-    // Forks
-    el("forkList").innerHTML = (data.forks || []).map(f =>
-      `<div class="tag ${riskClass(f.risk)}">${f.label} — ${f.days_out}d — Impact: ${f.impact}</div>`
-    ).join(" ");
+    // Paths (three‑path outlook from forks)
+    const forks = Array.isArray(data.forkScan) ? data.forkScan : [];
+    const top3  = [...forks].sort((a,b)=> (b.probability||0) - (a.probability||0)).slice(0,3);
+    document.getElementById("paths").innerHTML = top3.map(f =>
+      `<span class="tag ${riskClass(f.risk)}">${f.label}: ${f.probability || 0}% — ${f.impact}</span>`
+    ).join(" ") || '<span class="badge">No path data</span>';
 
-    // Hazards
-    el("hazards").innerHTML = (data.hazards || []).map(h =>
-      `<div class="tag risk-high">${h.name} — ${h.window} — Fix: ${h.mitigation}</div>`
-    ).join(" ");
+    // Fork list
+    document.getElementById("forkList").innerHTML = forks.map(f => `
+      <div class="fork">
+        <div class="lbl">${f.label}</div>
+        <div class="meta ${riskClass(f.risk)}">${f.impact} • Risk: ${f.risk} • P: ${f.probability || 0}%</div>
+      </div>
+    `).join("") || '<span class="badge">No forks yet</span>';
 
-    // Actions
-    el("leverage").textContent = data.actions?.high_leverage || "—";
-    el("nextThree").innerHTML = (data.actions?.next_three || []).map(a =>
-      `<div class="tag">${a.action} — ${a.impact}</div>`
-    ).join(" ");
-
-    // Highlights info
-    el("highlights").textContent = JSON.stringify(data.highlights || {}, null, 2);
+    // Insights / Actions
+    const ins = Array.isArray(data.insights) ? data.insights : [];
+    document.getElementById("insights").innerHTML = ins.map(i => `<li>${i}</li>`).join("") || '<li>No insights yet</li>';
+    const acts = Array.isArray(data.nextActions) ? data.nextActions : [];
+    document.getElementById("nextActions").innerHTML = acts.map(a => `<li>${a}</li>`).join("") || '<li>No actions yet</li>';
 
     // Diagram
-    const graphTxt = buildMermaid();
+    const graphTxt = buildMermaidFromForks(forks);
     const { svg } = await mermaid.render("apexGraph", graphTxt);
-    el("diagram").innerHTML = svg;
+    document.getElementById("diagram").innerHTML = svg;
   }
-  main().catch(err => { el("updated").textContent = "Error loading data"; console.error(err); });
+
+  main().catch(err => {
+    console.error(err);
+    document.getElementById("updated").textContent = "Error loading data";
+  });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 </body>
