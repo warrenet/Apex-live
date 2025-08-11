@@ -48,18 +48,20 @@
     }
     .changed { transition: color .35s ease; color:#a7d6ff !important; }
 
-    /* Refresh button + spinner */
+    /* Header right: refresh, spinner, admin, mode */
     .right{display:flex;align-items:center;gap:8px}
-    button.refresh{
-      background:transparent;border:1px solid var(--line);color:#e8eef5;border-radius:8px;
-      padding:8px 12px;font-size:13px
-    }
-    .spin{
-      width:16px;height:16px;border-radius:50%;
-      border:2px solid rgba(223,233,255,.25);border-top-color:#dfe9ff;
-      animation:spin 1s linear infinite; display:none;
-    }
+    button.refresh{background:transparent;border:1px solid var(--line);color:#e8eef5;border-radius:8px;padding:8px 12px;font-size:13px}
+    .spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(223,233,255,.25);border-top-color:#dfe9ff;animation:spin 1s linear infinite;display:none}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    .admin-badge{display:none;margin-left:8px}
+    .admin-badge a{color:#a7d6ff;text-decoration:none;border:1px solid var(--line);padding:6px 10px;border-radius:8px;font-size:12px;text-decoration:none}
+    .mode-pill{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:500;position:relative}
+    .mode-live{background:#065f46;color:#e8eef5} /* green */
+    .mode-inline{background:#1e3a8a;color:#e8eef5} /* blue */
+    .tooltip{cursor:help}
+    .mode-pill .tiptext{visibility:hidden;width:220px;background-color:#122940;color:#e8eef5;text-align:left;border-radius:8px;padding:8px;position:absolute;z-index:10;bottom:125%;left:50%;margin-left:-110px;opacity:0;transition:opacity .3s;border:1px solid var(--line)}
+    .mode-pill:hover .tiptext{visibility:visible;opacity:1}
   </style>
 </head>
 <body>
@@ -73,6 +75,7 @@
       <div class="badge" id="updated">Loading…</div>
       <div class="spin" id="spinner" aria-hidden="true"></div>
       <button class="refresh" id="refreshBtn" type="button">Refresh Now</button>
+      <!-- Admin badge & mode pill will be injected here -->
     </div>
   </header>
 
@@ -180,19 +183,16 @@
 }
 </script>
 
-<!-- Mermaid + App Logic (combined, auto-detect live JSON) -->
+<!-- Mermaid + App Logic (all-in-one) -->
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
   mermaid.initialize({ startOnLoad: false, theme: "dark" });
 
-  /* CONFIG
-     The page tries to load ./continuity.json (same folder).
-     If found → auto-refresh every REFRESH_INTERVAL_MS.
-     If not found → uses the inline JSON above; manual Refresh Now still works.
-  */
-  const DATA_URL = "./continuity.json";
-  const REFRESH_INTERVAL_MS = 180_000; // 3 minutes
+  // CONFIG
+  const DATA_URL = "./continuity.json"; // auto-detect same-folder JSON
+  const REFRESH_INTERVAL_MS = 180_000;  // 3 minutes
 
+  // DOM helpers
   const el = id => document.getElementById(id);
   const riskClass = (risk) => {
     if(!risk) return "";
@@ -224,31 +224,32 @@ flowchart TD
     `;
   };
 
+  // STATE
+  let liveMode = false;
   let diagramKey = "";
-  let liveMode = false; // flips to true if external JSON is reachable
 
   async function fetchExternal() {
     try {
       const res = await fetch(`${DATA_URL}?t=${Date.now()}`, {cache:"no-store"});
       if (!res.ok) throw new Error("status " + res.status);
       return await res.json();
-    } catch (e) { return null; }
+    } catch { return null; }
   }
   function fetchInline() {
-    const text = document.getElementById("continuity-inline")?.textContent?.trim();
+    const text = el("continuity-inline")?.textContent?.trim();
     return JSON.parse(text || "{}");
   }
 
-  function flashOnce(node){ if(!node) return; node.classList.add('flash'); setTimeout(()=>node.classList.remove('flash'), 1000); }
-  function setHTML(id, html){
-    const node = el(id);
-    if (!node) return;
-    if (String(node.innerHTML).trim() !== String(html).trim()) { node.innerHTML = html; flashOnce(node); }
-  }
   function showSpinner(ms=1000){
     const spinner = el("spinner");
     spinner.style.display = "inline-block";
     setTimeout(()=>{ spinner.style.display = "none"; }, ms);
+  }
+  function flashOnce(node){ if(!node) return; node.classList.add('flash'); setTimeout(()=>node.classList.remove('flash'), 950); }
+  function setHTML(id, html){
+    const node = el(id);
+    if (!node) return;
+    if (String(node.innerHTML).trim() !== String(html).trim()) { node.innerHTML = html; flashOnce(node); }
   }
 
   async function render(data){
@@ -301,10 +302,63 @@ flowchart TD
   }
 
   async function tick(){
-    showSpinner(1000); // show ~1s each fetch
+    showSpinner(1000); // ~1s
     const ext = await fetchExternal();
     liveMode = !!ext;
     await render(ext || fetchInline());
+    updateAdminAndModeUI(); // refresh pill to reflect mode + enable click
+  }
+
+  // Expose tiny hooks for Admin/Mode pill
+  window.APEX = {
+    getMode: () => (liveMode ? 'live' : 'inline'),
+    tick
+  };
+
+  // Inject Admin badge + Mode pill (and wire click-to-refresh in live)
+  function updateAdminAndModeUI(){
+    const headerRight = document.querySelector('.right');
+    if (!headerRight) return;
+
+    // Clear existing pills/badges (avoid duplicates)
+    headerRight.querySelectorAll('.admin-badge, .mode-pill').forEach(n=>n.remove());
+
+    // Admin persistence (?admin=1 / ?admin=0)
+    const params = new URLSearchParams(location.search);
+    const adminParam = params.get('admin');
+    if (adminParam === '1') localStorage.setItem('apex_admin', '1');
+    if (adminParam === '0') localStorage.removeItem('apex_admin');
+    const isAdmin = localStorage.getItem('apex_admin') === '1' || adminParam === '1';
+
+    if (isAdmin) {
+      const badge = document.createElement('span');
+      badge.className = 'admin-badge';
+      badge.style.display = 'inline-block';
+      badge.innerHTML = `<a href="updater.html" target="_blank" rel="noopener">Admin</a>`;
+      headerRight.appendChild(badge);
+    }
+
+    const mode = liveMode ? 'live' : 'inline';
+    const pill = document.createElement('span');
+    pill.className = `mode-pill ${mode === 'live' ? 'mode-live' : 'mode-inline'} tooltip`;
+    pill.innerHTML = `
+      ${mode === 'live' ? 'Mode: Live' : 'Mode: Inline'}
+      <span class="tiptext">${
+        mode === 'live'
+          ? 'Live mode: pulling continuity.json every 3 minutes. Tap to refresh now.'
+          : 'Inline mode: using embedded JSON (use Refresh button).'
+      }</span>
+    `;
+    headerRight.appendChild(pill);
+
+    if (mode === 'live') {
+      pill.style.cursor = 'pointer';
+      pill.addEventListener('click', ()=>{
+        try { tick(); } catch(e) {}
+        pill.style.transform = 'scale(0.98)';
+        setTimeout(()=>{ pill.style.transform = 'scale(1)'; }, 120);
+      });
+    }
   }
 
   // First load
@@ -317,6 +371,7 @@ flowchart TD
   (async ()=>{
     const ext = await fetchExternal();
     liveMode = !!ext;
+    updateAdminAndModeUI();
     if (liveMode && REFRESH_INTERVAL_MS > 0) {
       setInterval(tick, REFRESH_INTERVAL_MS);
     }
