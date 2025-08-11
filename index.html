@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Apex Live Blueprint — W.E. Trepp</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<style>
+  :root{
+    --bg:#0f1c2e;--fg:#e8eef5;--muted:#98a6bd;--line:#2a446b;
+    --panel:#122940;--chip:#0c1d2f;--accent:#4c6fa8;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+  .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+  h1{font-size:18px;margin:0} .badge{font-size:12px;color:var(--muted)}
+  .grid{display:grid;gap:12px}
+  @media (min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  h2,h3{margin:0 0 10px 0;font-size:16px}
+  .metric{display:flex;gap:8px;flex-wrap:wrap}
+  .tag{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px}
+  .risk-low{color:#a7f3d0}.risk-medium{color:#fbbf24}.risk-high{color:#f87171}
+  a.btn{color:#dfe9ff;text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px}
+  .footer{margin:16px 0;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+  pre{white-space:pre-wrap;word-wrap:break-word;background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px}
+  .mermaid{overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>⟁∞ WARREN EDWARD TREPP ∞⟁ — Apex Live Blueprint</h1>
+      <div class="badge">Apex Framework Architect • Creator of Hyper‑Life Systems</div>
+    </div>
+    <div class="badge" id="updated">Loading…</div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <h2 id="probmap">Probability Map</h2>
+      <div id="probmapList"></div>
+    </div>
+    <div class="panel">
+      <h2>Live Metrics</h2>
+      <div class="metric">
+        <div class="tag">Momentum: <span id="momentum">—</span>%</div>
+        <div class="tag">Pressure: <span id="pressure">—</span>%</div>
+        <div class="tag">Energy: <span id="energy">—</span>%</div>
+        <div class="tag">Dopamine: <span id="dopamine">—</span>%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <h2>Live Diagram</h2>
+    <div id="diagram" class="mermaid">graph TD; A[Loading diagram…];</div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="panel">
+      <h2 id="forks">Fork Scan</h2>
+      <div id="forkList"></div>
+    </div>
+    <div class="panel">
+      <h2>Hazards & Mitigations</h2>
+      <div id="hazards"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="panel">
+      <h3>Today’s High‑Leverage Move</h3>
+      <div id="leverage">—</div>
+      <h3 style="margin-top:10px">Next Three</h3>
+      <div id="nextThree"></div>
+    </div>
+    <div class="panel">
+      <h3>Highlights (Last Changes)</h3>
+      <pre id="highlights">—</pre>
+    </div>
+  </div>
+
+  <div class="footer">
+    View: <a class="btn" href="#probmap">Probmap</a> <a class="btn" href="#forks">Forks</a>
+    • Mode: <span id="mode">—</span> • Session: <span id="session">—</span>
+  </div>
+</div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "dark" });
+
+  // TODO: after enabling GitHub Pages, replace <your-user> with your GitHub username:
+  const DATA_URL = "https://<your-user>.github.io/apex-live/continuity.json";
+
+  const el = (id)=>document.getElementById(id);
+  const riskClass = r => !r ? "" : (r.toLowerCase().includes("high") ? "risk-high" : r.toLowerCase().includes("medium") ? "risk-medium" : "risk-low");
+
+  const buildMermaid = () => `
+flowchart TD
+  A[⟁∞ W.E. TREPP ∞⟁<br/>▲ Apex Framework Architect]:::core --> B{▲ APEX CALIBRATION}:::core
+  B --> C[INITIALIZATION]:::core
+  C --> D[PERSONA COUNCIL]:::core
+  D --> E[TREE OF THOUGHT]:::core
+  E --> F[CHAIN OF THOUGHT]:::core
+  F --> G[PERSONA CONVERGENCE]:::core
+  G --> H[▲ MOMENTUM MAP ▸ ◆ Apex]:::core
+  H --> I[REAL‑TIME LOGS]:::support
+  H --> J[TRACKERS & PROJECTIONS ▸ Momentum ▸ Pattern Web ▸ Three‑Path ▸ Impact Chain]:::support
+  J --> K[META LOOPS ×3 ▸ 10/10]:::core
+  K --> L[HEALTH & PERFORMANCE]:::core
+  L --> M[WHAT’S NEXT HUB (probmap/heatmap)]:::core
+  M --> N[ADAPTIVE INTELLIGENCE (Continuity)]:::core
+  N --> O[ELITE ENGINES]:::core
+  O --> P[POST‑SESSION DEBRIEF]:::core
+  classDef core fill:#0f1c2e,stroke:#2a446b,color:#e8eef5,stroke-width:2px;
+  classDef support fill:#122940,stroke:#2a446b,color:#e8eef5,stroke-width:1.5px;
+`;
+
+  async function main(){
+    const res = await fetch(DATA_URL, {cache:"no-store"});
+    const data = await res.json();
+
+    // Meta
+    el("updated").textContent = `Updated: ${new Date(data.meta?.updated_at || Date.now()).toLocaleString()}`;
+    el("mode").textContent = data.meta?.mode || "—";
+    el("session").textContent = data.meta?.session_id || "—";
+
+    // Metrics
+    el("momentum").textContent = Math.round((data.scores?.momentum ?? 0));
+    el("pressure").textContent = Math.round((data.scores?.pressure ?? 0));
+    el("energy").textContent = Math.round((data.scores?.energy ?? 0));
+    el("dopamine").textContent = Math.round((data.scores?.dopamine_budget ?? 0));
+
+    // Probmap
+    el("probmapList").innerHTML = (data.probmap || []).map(p =>
+      `<div class="tag ${riskClass(p.risk)}">${p.name}: ${(p.likelihood*100).toFixed(0)}% — ${p.label}</div>`
+    ).join(" ");
+
+    // Forks
+    el("forkList").innerHTML = (data.forks || []).map(f =>
+      `<div class="tag ${riskClass(f.risk)}">${f.label} — ${f.days_out}d — Impact: ${f.impact}</div>`
+    ).join(" ");
+
+    // Hazards
+    el("hazards").innerHTML = (data.hazards || []).map(h =>
+      `<div class="tag risk-high">${h.name} — ${h.window} — Fix: ${h.mitigation}</div>`
+    ).join(" ");
+
+    // Actions
+    el("leverage").textContent = data.actions?.high_leverage || "—";
+    el("nextThree").innerHTML = (data.actions?.next_three || []).map(a =>
+      `<div class="tag">${a.action} — ${a.impact}</div>`
+    ).join(" ");
+
+    // Highlights info
+    el("highlights").textContent = JSON.stringify(data.highlights || {}, null, 2);
+
+    // Diagram
+    const graphTxt = buildMermaid();
+    const { svg } = await mermaid.render("apexGraph", graphTxt);
+    el("diagram").innerHTML = svg;
+  }
+  main().catch(err => { el("updated").textContent = "Error loading data"; console.error(err); });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+</body>
+</html>
