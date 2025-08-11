@@ -511,5 +511,90 @@ Run hazard simulation on Fork C and prepare counter.</textarea>
   restoreTokenIfAny();
   restoreDraft();
 </script>
-</body>
+</body><!-- APEX Admin Add‑On: auto‑fill + PIN gate + encrypted token memory -->
+<script>
+(function ApexAdminSecure(){
+  // ---- Auto-fill defaults ----
+  const DEFAULTS = { user: "warrennet", repo: "Apex-live", path: "continuity.json" };
+
+  // Wait for drawer UI to exist (the unified file creates it at runtime)
+  document.addEventListener('DOMContentLoaded', () => {
+    const ensure = (id) => document.getElementById(id);
+
+    // Helper: set default values if empty
+    function applyDefaults() {
+      const u = ensure('u_user'), r = ensure('u_repo'), p = ensure('u_path');
+      if (u && !u.value) u.value = DEFAULTS.user;
+      if (r && !r.value) r.value = DEFAULTS.repo;
+      if (p && !p.value) p.value = DEFAULTS.path;
+    }
+
+    // ---------- PIN + Token Encryption (AES‑GCM via WebCrypto) ----------
+    const enc = new TextEncoder(), dec = new TextDecoder();
+    const LS_TOKEN_KEY = 'apex_token_enc'; // {salt,iv,ct} JSON
+    const QS = (id) => document.getElementById(id);
+
+    const bufToB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const b64ToBuf = (b64) => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+    async function deriveKey(pin, saltBytes){
+      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pin), {name:'PBKDF2'}, false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        {name:'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256'},
+        keyMaterial, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+      );
+    }
+    async function encryptToken(pin, token){
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv   = crypto.getRandomValues(new Uint8Array(12));
+      const key  = await deriveKey(pin, salt);
+      const ct   = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(token));
+      return { salt: bufToB64(salt), iv: bufToB64(iv), ct: bufToB64(ct) };
+    }
+    async function decryptToken(pin, blob){
+      const salt = b64ToBuf(blob.salt), iv = b64ToBuf(blob.iv), ct = b64ToBuf(blob.ct);
+      const key = await deriveKey(pin, salt);
+      const pt  = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
+      return dec.decode(pt);
+    }
+
+    async function secureSaveTokenFlow(){
+      const tokenEl = QS('u_token'); if (!tokenEl) return;
+      const token = tokenEl.value.trim();
+      if (!token){ alert('Token is empty. Paste your token first.'); return false; }
+      let pin = prompt('Set a PIN (4–8 digits) to protect your token:'); 
+      if (!pin) return false;
+      pin = pin.trim();
+      if (!/^\d{4,8}$/.test(pin)){ alert('PIN must be 4–8 digits.'); return false; }
+      try{
+        const blob = await encryptToken(pin, token);
+        localStorage.setItem(LS_TOKEN_KEY, JSON.stringify(blob));
+        return true;
+      }catch(e){
+        console.warn(e); alert('Could not encrypt token on this device.');
+        return false;
+      }
+    }
+
+    async function secureLoadTokenFlow(){
+      const tokenEl = QS('u_token'); if (!tokenEl) return;
+      const raw = localStorage.getItem(LS_TOKEN_KEY);
+      if (!raw) return false;
+      try{
+        const pin = prompt('Enter your PIN to unlock the token:');
+        if (!pin) return false;
+        const token = await decryptToken(pin.trim(), JSON.parse(raw));
+        tokenEl.value = token;
+        const remember = QS('u_remember'); if (remember) remember.checked = true;
+        return true;
+      }catch(e){
+        console.warn(e); alert('Invalid PIN or token data.');
+        return false;
+      }
+    }
+
+    // Hook the "Remember token" checkbox to secure storage
+    const remember = QS('u_remember');
+    if (remember){
+      remember.addEventListener('change',
 </html>
