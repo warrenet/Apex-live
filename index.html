@@ -1,381 +1,515 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Apex Live Blueprint — W.E. Trepp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1c2e" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Apex Live" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <style>
-    :root{
-      --bg:#0f1c2e;--fg:#e8eef5;--muted:#98a6bd;--line:#2a446b;
-      --panel:#122940;--chip:#0c1d2f;--accent:#4c6fa8;--ok:#00b87a;--warn:#fbbf24;--danger:#f87171;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-    .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
-    header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
-    h1{font-size:18px;margin:0} .badge{font-size:12px;color:var(--muted)}
-    .grid{display:grid;gap:12px}
-    @media (min-width:880px){.grid.two{grid-template-columns:1fr 1fr}}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
-    h2{margin:0 0 8px 0;font-size:16px}
-    h3{margin:0 0 8px 0;font-size:14px;color:var(--muted)}
-    .tag{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;display:inline-block;margin:2px 6px 2px 0}
-    .chips{display:flex;flex-wrap:wrap}
-    .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--muted);font-size:12px}
-    .risk-low{color:#a7f3d0}.risk-medium{color:#fbbf24}.risk-high{color:#f87171}
-    .barwrap{height:14px;background:var(--chip);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-    .bar{height:100%;width:0%;background:linear-gradient(90deg,#284a80,var(--accent));transition:width 900ms cubic-bezier(.2,.7,.2,1)}
-    .trend{font-variant-numeric:tabular-nums}
-    .trend.up{color:var(--ok)} .trend.down{color:var(--danger)}
-    .list{display:grid;gap:6px}
-    .fork{display:flex;justify-content:space-between;align-items:center;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
-    .fork .lbl{color:var(--fg)} .fork .meta{color:var(--muted)}
-    .mermaid{overflow:auto}
-    a.btn{color:#dfe9ff;text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px}
-    .footer{margin:16px 0;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
-
-    /* Animations & refresh flash */
-    .flash { box-shadow: 0 0 0 0 rgba(76,111,168,.9); animation: flash 950ms ease-out 1; }
-    @keyframes flash {
-      0% { box-shadow: 0 0 0 0 rgba(76,111,168,.9); }
-      70%{ box-shadow: 0 0 18px 6px rgba(76,111,168,.45); }
-      100%{ box-shadow: 0 0 0 0 rgba(76,111,168,0); }
-    }
-    .changed { transition: color .35s ease; color:#a7d6ff !important; }
-
-    /* Header right: refresh, spinner, admin, mode */
-    .right{display:flex;align-items:center;gap:8px}
-    button.refresh{background:transparent;border:1px solid var(--line);color:#e8eef5;border-radius:8px;padding:8px 12px;font-size:13px}
-    .spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(223,233,255,.25);border-top-color:#dfe9ff;animation:spin 1s linear infinite;display:none}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    .admin-badge{display:none;margin-left:8px}
-    .admin-badge a{color:#a7d6ff;text-decoration:none;border:1px solid var(--line);padding:6px 10px;border-radius:8px;font-size:12px;text-decoration:none}
-    .mode-pill{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:500;position:relative}
-    .mode-live{background:#065f46;color:#e8eef5} /* green */
-    .mode-inline{background:#1e3a8a;color:#e8eef5} /* blue */
-    .tooltip{cursor:help}
-    .mode-pill .tiptext{visibility:hidden;width:220px;background-color:#122940;color:#e8eef5;text-align:left;border-radius:8px;padding:8px;position:absolute;z-index:10;bottom:125%;left:50%;margin-left:-110px;opacity:0;transition:opacity .3s;border:1px solid var(--line)}
-    .mode-pill:hover .tiptext{visibility:visible;opacity:1}
-  </style>
+<meta charset="utf-8">
+<title>Apex Live — Mobile Updater</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1c2e" />
+<style>
+  :root{--bg:#0f1c2e;--fg:#e8eef5;--muted:#98a6bd;--line:#2a446b;--panel:#122940;--chip:#0c1d2f;--ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--accent:#4c6fa8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:760px;margin:18px auto;padding:0 14px}
+  h1{font-size:20px;margin:0 0 8px}
+  .small{font-size:12px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+  label{font-size:12px;color:var(--muted)}
+  input,select,textarea{width:100%;background:#0c1d2f;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px}
+  input[type=checkbox]{width:auto}
+  .row{display:grid;gap:10px}
+  @media(min-width:640px){.row.two{grid-template-columns:1fr 1fr}}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  button{background:#1c2f4a;color:#e8eef5;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px}
+  button.primary{background:#24456f}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:12px}
+  .msg{margin-top:8px;font-size:13px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
+  .fork{display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:8px}
+  .forks{display:grid;gap:8px}
+  .hr{height:1px;background:var(--line);margin:10px 0}
+  .kvs{font-size:12px;color:var(--muted);line-height:1.4}
+  .kvs b{color:#cfe3ff}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0c1d2f;border:1px solid var(--line);padding:10px 14px;border-radius:10px;display:none}
+  .diff{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;background:#0c1d2f;border:1px solid var(--line);border-radius:10px;padding:10px;white-space:pre-wrap}
+  .add{color:#a7f3d0} .del{color:#f87171}
+</style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div>
-      <h1>⟁∞ WARREN EDWARD TREPP ∞⟁ — Apex Live</h1>
-      <div class="badge">Apex Framework Architect • Creator of Hyper‑Life Systems</div>
+  <h1>⟁∞ APEX LIVE — Mobile Updater</h1>
+  <div class="small">Edit <span class="pill">continuity.json</span> in your repo via GitHub API. Matches your dashboard schema.</div>
+
+  <!-- Auth & Repo -->
+  <div class="card">
+    <div class="row two">
+      <div><label>GitHub Username</label><input id="user" placeholder="e.g., warrennet"></div>
+      <div><label>Repository</label><input id="repo" value="Apex-live"></div>
     </div>
-    <div class="right">
-      <div class="badge" id="updated">Loading…</div>
-      <div class="spin" id="spinner" aria-hidden="true"></div>
-      <button class="refresh" id="refreshBtn" type="button">Refresh Now</button>
-      <!-- Admin badge & mode pill will be injected here -->
+    <div class="row two" style="margin-top:8px">
+      <div><label>Path</label><input id="path" value="continuity.json"></div>
+      <div><label>Token (fine‑grained, contents: rw)</label><input id="token" type="password" placeholder="paste token (not stored)"></div>
     </div>
-  </header>
+    <div class="row" style="margin-top:8px">
+      <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="remember"> Remember token for this session (clears on tab close)</label>
+    </div>
+    <div class="btns" style="margin-top:10px">
+      <button id="load" class="primary">Load</button>
+      <button id="pull">Pull Latest</button>
+      <button id="save" class="primary">Save to GitHub</button>
+      <button id="download">Download JSON</button>
+      <button id="revert">Undo to Last Loaded</button>
+    </div>
+    <div id="status" class="msg"></div>
+    <div class="kvs" id="metaInfo" style="margin-top:6px"></div>
+  </div>
 
   <!-- Session -->
-  <div class="panel">
-    <div class="chips">
-      <span class="pill" id="title">Apex Live Blueprint</span>
-      <span class="pill" id="owner">—</span>
-      <span class="pill" id="role">—</span>
-      <span class="pill" id="mode">Mode: —</span>
+  <div class="card">
+    <div class="row two">
+      <div><label>Last Updated (ISO)</label><input id="lastUpdated" placeholder="YYYY-MM-DDTHH:MM:SSZ"></div>
+      <div><label>Mode</label><input id="mode" value="full"></div>
+    </div>
+    <div class="row two" style="margin-top:8px">
+      <div><label>Session ID</label><input id="session_id" placeholder="2025-08-11-001"></div>
+      <div><label>Owner</label><input id="owner" value="⟁∞ Warren Edward Trepp ∞⟁"></div>
+    </div>
+    <div class="btns" style="margin-top:8px">
+      <button id="stamp">Timestamp Now (UTC)</button>
     </div>
   </div>
 
-  <!-- Metrics -->
-  <div class="grid two" style="margin-top:12px">
-    <div class="panel" id="momPanel">
-      <h2>Momentum</h2>
-      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 8px">
-        <span id="momScore" style="font-size:22px">—%</span>
-        <span id="momStatus" class="tag">—</span>
-        <span id="momTrend" class="trend">—</span>
+  <!-- Momentum -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Momentum</h3>
+    <div class="row two">
+      <div><label>Score (0–100)</label><input id="m_score" type="number" min="0" max="100" value="82"></div>
+      <div><label>Trend (+/‑ number)</label><input id="m_trend" value="+6"></div>
+    </div>
+    <div class="row two" style="margin-top:8px">
+      <div>
+        <label>Status</label>
+        <select id="m_status">
+          <option>High</option><option>Medium</option><option>Low</option>
+        </select>
       </div>
-      <div class="barwrap"><div id="momBar" class="bar"></div></div>
-      <div class="badge" id="momNotes" style="margin-top:8px">—</div>
+      <div><label>Note</label><input id="m_note" value="Strong upward momentum; next 14 days carry the highest leverage."></div>
     </div>
-    <div class="panel" id="healthPanel">
-      <h2>Health Snapshot</h2>
-      <div class="list" id="healthList"></div>
-    </div>
-  </div>
-
-  <!-- Probabilities & Forks -->
-  <div class="grid two" style="margin-top:12px">
-    <div class="panel" id="pathsPanel">
-      <h2 id="probmap">Three‑Path Outlook</h2>
-      <div id="paths" class="chips"></div>
-    </div>
-    <div class="panel" id="forksPanel">
-      <h2 id="forks">Fork Scan</h2>
-      <div id="forkList" class="list"></div>
+    <div class="btns" style="margin-top:8px">
+      <button data-bump="+5" class="bump">+5 Momentum</button>
+      <button data-bump="-5" class="bump">-5 Momentum</button>
+      <button id="normalizeMomentum">Normalize (clamp 0–100)</button>
     </div>
   </div>
 
-  <!-- Diagram -->
-  <div class="panel" id="diagramPanel" style="margin-top:12px">
-    <h2>Trajectory Diagram</h2>
-    <div id="diagram" class="mermaid">graph TD; A[Loading…];</div>
+  <!-- Health -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Health</h3>
+    <div class="row two">
+      <div><label>Sleep</label><input id="h_sleep" value="7.5h — consistent"></div>
+      <div><label>Nutrition</label><input id="h_nutrition" value="High protein, steady carbs, micronutrient coverage"></div>
+    </div>
+    <div class="row two" style="margin-top:8px">
+      <div><label>Mobility</label><input id="h_mobility" value="Daily stretch + 3× strength"></div>
+      <div><label>Dopamine</label><input id="h_dopamine" value="Regulated via 2× deep-work blocks"></div>
+    </div>
+    <div style="margin-top:8px"><label>Stress</label><input id="h_stress" value="Low and stable"></div>
   </div>
 
-  <!-- Insights & Actions -->
-  <div class="grid two" style="margin-top:12px">
-    <div class="panel" id="insightsPanel">
-      <h2>Insights</h2>
-      <ul id="insights" style="margin:0 0 4px 16px; padding:0"></ul>
-    </div>
-    <div class="panel" id="actionsPanel">
-      <h2>Next Actions</h2>
-      <ol id="nextActions" style="margin:0 0 0 18px; padding:0"></ol>
+  <!-- Fork Scan -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Fork Scan (3 paths)</h3>
+    <div id="forks" class="forks"></div>
+    <div class="btns" style="margin-top:8px">
+      <button id="resetForks">Reset 3 Defaults</button>
+      <button id="sortForks">Sort by Probability</button>
+      <button id="validateForks">Validate Forks</button>
     </div>
   </div>
 
-  <div class="footer">
-    <a class="btn" href="#probmap">Probmap</a>
-    <a class="btn" href="#forks">Forks</a>
-    <span class="badge">Session: <span id="sessionId">—</span></span>
+  <!-- Insights / Actions -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Insights (one per line)</h3>
+    <textarea id="insights" rows="4">Early-day deep work drives the majority of compounding gains.
+Fork A aligns with energy profile; risk is acceptable.
+Hazards drop when evening plan ritual is consistent.
+Alliances unlock the fastest path to accelerated track.</textarea>
   </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px">Next Actions (one per line)</h3>
+    <textarea id="actions" rows="4">Lock 90-minute deep work at 07:30 for 10 days.
+Evening plan ritual (10 min) to cut friction by 8–12%.
+Outreach to alliance X and propose joint sprint.
+Run hazard simulation on Fork C and prepare counter.</textarea>
+  </div>
+
+  <!-- Commit controls -->
+  <div class="card">
+    <div class="row two">
+      <div><label>Commit Message</label><input id="commitMsg" value="mobile: update continuity.json"></div>
+      <div><label>Auto Pull Interval (minutes)</label><input id="autoMin" type="number" min="0" value="3"></div>
+    </div>
+    <div class="btns" style="margin-top:10px">
+      <button id="preview" class="primary">Preview Changes</button>
+      <button id="save2">Save (Confirm)</button>
+    </div>
+    <div class="msg" id="valMsg"></div>
+    <div class="hr"></div>
+    <div class="diff" id="diffBox">Diff will appear here after “Preview Changes”.</div>
+  </div>
+
 </div>
 
-<!-- Inline data fallback (used if no continuity.json is present) -->
-<script id="continuity-inline" type="application/json">
-{
-  "session": {
-    "title": "Apex Live Blueprint",
-    "owner": "⟁∞ Warren Edward Trepp ∞⟁",
-    "role": "Apex Framework Architect — Creator of Hyper-Life Systems",
-    "lastUpdated": "2025-08-11T18:00:00Z",
-    "mode": "full",
-    "session_id": "inline-000"
-  },
-  "momentum": { "score": 82, "status": "High", "trend": "+6", "notes": "Strong upward momentum; next 14 days carry the highest leverage." },
-  "forkScan": [
-    { "label": "Fork A (14d)",  "impact": "High",      "risk": "Medium", "probability": 64 },
-    { "label": "Fork B (60d)",  "impact": "Medium",    "risk": "Low",    "probability": 23 },
-    { "label": "Fork C (120d)", "impact": "Very High", "risk": "High",   "probability": 13 }
-  ],
-  "health": {
-    "sleep": "7.5h — consistent",
-    "nutrition": "High protein, steady carbs, micronutrient coverage",
-    "mobility": "Daily stretch + 3× strength",
-    "dopamine": "Regulated via 2× deep-work blocks",
-    "stress": "Low and stable"
-  },
-  "insights": [
-    "Early-day deep work drives the majority of compounding gains.",
-    "Fork A aligns with energy profile; risk is acceptable.",
-    "Hazards drop when evening plan ritual is consistent.",
-    "Alliances unlock the fastest path to accelerated track."
-  ],
-  "nextActions": [
-    "Lock 90-minute deep work at 07:30 for 10 days.",
-    "Evening plan ritual (10 min) to cut friction by 8–12%.",
-    "Outreach to alliance X and propose joint sprint.",
-    "Run hazard simulation on Fork C and prepare counter."
-  ]
-}
-</script>
+<div id="toast" class="toast">Done</div>
 
-<!-- Mermaid + App Logic (all-in-one) -->
-<script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({ startOnLoad: false, theme: "dark" });
+<script>
+  // ---------- helpers ----------
+  const qs = id => document.getElementById(id);
+  const setMsg = (el, msg, cls='') => { el.textContent = msg; el.className = 'msg ' + cls; };
+  const toast = (t) => { const el = qs('toast'); el.textContent = t; el.style.display='block'; setTimeout(()=>el.style.display='none', 1500); };
+  const b64encode = str => btoa(unescape(encodeURIComponent(str)));
+  const b64decode = str => decodeURIComponent(escape(atob(str)));
+  const isoNow = ()=> new Date().toISOString();
 
-  // CONFIG
-  const DATA_URL = "./continuity.json"; // auto-detect same-folder JSON
-  const REFRESH_INTERVAL_MS = 180_000;  // 3 minutes
-
-  // DOM helpers
-  const el = id => document.getElementById(id);
-  const riskClass = (risk) => {
-    if(!risk) return "";
-    const r = risk.toLowerCase();
-    return r.includes("high") ? "risk-high" : r.includes("medium") ? "risk-medium" : "risk-low";
-  };
-  const trendSpan = (t) => {
-    if(!t || t === "—") return "—";
-    const num = parseFloat(t);
-    if (!isNaN(num)) return num >= 0 ? `<span class="trend up">▲ +${num}%</span>` : `<span class="trend down">▼ ${num}%</span>`;
-    return t.trim().startsWith("+") ? `<span class="trend up">▲ ${t}</span>` : `<span class="trend down">▼ ${t.replace('-', '')}</span>`;
-  };
-  const buildMermaidFromForks = (forks=[]) => {
-    const nodes = forks.map((f,i)=> {
-      const id = `F${i}`;
-      const label = `${f.label}\\nImpact: ${f.impact}\\nRisk: ${f.risk}\\nP: ${f.probability || 0}%`;
-      return `${id}["${label}"]:::${(f.risk||'').toLowerCase().includes('high')?'risk':'alt'}`;
-    }).join("\n  ");
-    const edges = forks.map((f,i)=> `A --> F${i}`).join("\n  ");
-    return `
-flowchart TD
-  A[Current Trajectory]:::core
-  ${nodes ? nodes : 'F0["No forks found"]:::alt'}
-  ${edges || 'A --> F0'}
-  classDef core fill:#0f1c2e,stroke:#2a446b,color:#e8eef5,stroke-width:2px;
-  classDef alt fill:#0d2034,stroke:#4c6fa8,color:#dfe9ff,stroke-width:1.6px;
-  classDef risk fill:#3a0f12,stroke:#b94747,color:#ffe7e7,stroke-width:2px;
-  linkStyle default stroke:#2a446b,stroke-width:1.4px;
+  // ---------- UI builders ----------
+  function forkRow(f={label:"Fork A (14d)",impact:"High",risk:"Medium",probability:64}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'fork';
+    wrap.innerHTML = `
+      <input class="f_label" placeholder="Label" value="${f.label||''}">
+      <input class="f_impact" placeholder="Impact" value="${f.impact||''}">
+      <input class="f_risk" placeholder="Risk" value="${f.risk||''}">
+      <input class="f_prob" type="number" min="0" max="100" placeholder="Prob %" value="${f.probability||0}">
     `;
-  };
-
-  // STATE
-  let liveMode = false;
-  let diagramKey = "";
-
-  async function fetchExternal() {
-    try {
-      const res = await fetch(`${DATA_URL}?t=${Date.now()}`, {cache:"no-store"});
-      if (!res.ok) throw new Error("status " + res.status);
-      return await res.json();
-    } catch { return null; }
+    return wrap;
   }
-  function fetchInline() {
-    const text = el("continuity-inline")?.textContent?.trim();
-    return JSON.parse(text || "{}");
+  function fillForks(arr) {
+    const box = qs('forks');
+    box.innerHTML = '';
+    (arr && arr.length ? arr : [
+      {label:"Fork A (14d)",impact:"High",risk:"Medium",probability:64},
+      {label:"Fork B (60d)",impact:"Medium",risk:"Low",probability:23},
+      {label:"Fork C (120d)",impact:"Very High",risk:"High",probability:13}
+    ]).forEach(f=> box.appendChild(forkRow(f)));
   }
 
-  function showSpinner(ms=1000){
-    const spinner = el("spinner");
-    spinner.style.display = "inline-block";
-    setTimeout(()=>{ spinner.style.display = "none"; }, ms);
-  }
-  function flashOnce(node){ if(!node) return; node.classList.add('flash'); setTimeout(()=>node.classList.remove('flash'), 950); }
-  function setHTML(id, html){
-    const node = el(id);
-    if (!node) return;
-    if (String(node.innerHTML).trim() !== String(html).trim()) { node.innerHTML = html; flashOnce(node); }
+  // ---------- schema ----------
+  function toJSON(){
+    const insights = qs('insights').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const actions  = qs('actions').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const forkNodes = Array.from(document.querySelectorAll('#forks .fork')).map(node => ({
+      label: node.querySelector('.f_label').value,
+      impact: node.querySelector('.f_impact').value,
+      risk: node.querySelector('.f_risk').value,
+      probability: Number(node.querySelector('.f_prob').value || 0)
+    }));
+    return {
+      session: {
+        title: "Apex Live Blueprint",
+        owner: qs('owner').value || "⟁∞ Warren Edward Trepp ∞⟁",
+        role: "Apex Framework Architect — Creator of Hyper-Life Systems",
+        lastUpdated: qs('lastUpdated').value || isoNow(),
+        mode: qs('mode').value || "full",
+        session_id: qs('session_id').value || ""
+      },
+      momentum: { 
+        score: Number(qs('m_score').value || 0),
+        status: qs('m_status').value || "Medium",
+        trend: qs('m_trend').value || "0",
+        notes: qs('m_note').value || ""
+      },
+      forkScan: forkNodes,
+      health: {
+        sleep: qs('h_sleep').value,
+        nutrition: qs('h_nutrition').value,
+        mobility: qs('h_mobility').value,
+        dopamine: qs('h_dopamine').value,
+        stress: qs('h_stress').value
+      },
+      insights,
+      nextActions: actions
+    };
   }
 
-  async function render(data){
+  function fromJSON(data){
     const s = data.session || {};
-    el("title").textContent  = s.title || "Apex Live Blueprint";
-    el("owner").textContent  = s.owner || "—";
-    el("role").textContent   = s.role  || "—";
-    el("updated").textContent= "Updated: " + new Date(s.lastUpdated || Date.now()).toLocaleString();
-    el("mode").textContent   = "Mode: " + (s.mode || (liveMode ? "live" : "inline"));
-    el("sessionId").textContent = s.session_id || "—";
+    qs('lastUpdated').value = s.lastUpdated || '';
+    qs('mode').value        = s.mode || 'full';
+    qs('session_id').value  = s.session_id || '';
+    qs('owner').value       = s.owner || '⟁∞ Warren Edward Trepp ∞⟁';
 
     const m = data.momentum || {};
-    const score = Math.max(0, Math.min(100, Number(m.score || 0)));
-    el("momScore").textContent  = `${score}%`;
-    el("momStatus").textContent = m.status || "—";
-    el("momTrend").innerHTML    = trendSpan(m.trend || "—");
-    el("momNotes").textContent  = m.notes || "—";
-    requestAnimationFrame(()=>{ el("momBar").style.width = score + "%"; });
+    qs('m_score').value = m.score ?? 0;
+    qs('m_trend').value = m.trend ?? '0';
+    qs('m_status').value= m.status ?? 'Medium';
+    qs('m_note').value  = m.notes  ?? '';
+
+    fillForks(data.forkScan || []);
 
     const h = data.health || {};
-    const healthHTML = [
-      h.sleep     ? `<div class="tag">Sleep: ${h.sleep}</div>` : "",
-      h.nutrition ? `<div class="tag">Nutrition: ${h.nutrition}</div>` : "",
-      h.mobility  ? `<div class="tag">Mobility: ${h.mobility}</div>` : "",
-      h.dopamine  ? `<div class="tag">Dopamine: ${h.dopamine}</div>` : "",
-      h.stress    ? `<div class="tag">Stress: ${h.stress}</div>` : ""
-    ].filter(Boolean).join(" ") || '<span class="badge">No health data</span>';
-    setHTML("healthList", healthHTML);
+    qs('h_sleep').value     = h.sleep     || '';
+    qs('h_nutrition').value = h.nutrition || '';
+    qs('h_mobility').value  = h.mobility  || '';
+    qs('h_dopamine').value  = h.dopamine  || '';
+    qs('h_stress').value    = h.stress    || '';
 
-    const forks = Array.isArray(data.forkScan) ? data.forkScan : [];
-    const top3  = [...forks].sort((a,b)=> (b.probability||0) - (a.probability||0)).slice(0,3);
-    setHTML("paths", top3.map(f =>
-      `<span class="tag ${riskClass(f.risk)}">${f.label}: ${f.probability || 0}% — ${f.impact}</span>`
-    ).join(" ") || '<span class="badge">No path data</span>');
+    qs('insights').value = (data.insights||[]).join('\n');
+    qs('actions').value  = (data.nextActions||[]).join('\n');
+  }
 
-    setHTML("forkList", forks.map(f => `
-      <div class="fork">
-        <div class="lbl">${f.label}</div>
-        <div class="meta ${riskClass(f.risk)}">${f.impact} • Risk: ${f.risk} • P: ${f.probability || 0}%</div>
-      </div>
-    `).join("") || '<span class="badge">No forks yet</span>');
+  // ---------- validation ----------
+  function validateDraft(d){
+    const errs = [];
+    const score = Number(d.momentum?.score ?? NaN);
+    if (Number.isNaN(score) || score < 0 || score > 100) errs.push('Momentum score must be 0–100.');
+    (d.forkScan || []).forEach((f,i)=>{
+      if (f.probability < 0 || f.probability > 100) errs.push(`Fork ${i+1} probability must be 0–100.`);
+      if (!f.label) errs.push(`Fork ${i+1} needs a label.`);
+    });
+    if (!d.session?.lastUpdated) errs.push('Session.lastUpdated missing (use Timestamp Now).');
+    return errs;
+  }
 
-    const newKey = JSON.stringify(forks.map(f=>[f.label,f.impact,f.risk,f.probability]));
-    if (newKey !== diagramKey) {
-      const graphTxt = buildMermaidFromForks(forks);
-      const { svg } = await mermaid.render("apexGraph", graphTxt);
-      el("diagram").innerHTML = svg;
-      diagramKey = newKey;
+  // ---------- diff ----------
+  function diffJSON(a,b){
+    // basic field-by-field diff; returns string
+    const lines = [];
+    function walk(prefix, va, vb){
+      const aType = Object.prototype.toString.call(va);
+      const bType = Object.prototype.toString.call(vb);
+      if (aType !== bType){ lines.push(`~ ${prefix}: [type change]`); return; }
+      if (va && typeof va === 'object' && !Array.isArray(va)){
+        const keys = new Set([...Object.keys(va||{}), ...Object.keys(vb||{})]);
+        for (const k of keys) walk(`${prefix}.${k}`, va?.[k], vb?.[k]);
+      } else if (Array.isArray(va)){
+        const len = Math.max(va.length, vb.length);
+        for (let i=0;i<len;i++) walk(`${prefix}[${i}]`, va[i], vb[i]);
+      } else {
+        if (va !== vb){
+          if (va === undefined) lines.push(`+ ${prefix}: ${JSON.stringify(vb)}`);
+          else if (vb === undefined) lines.push(`- ${prefix}: ${JSON.stringify(va)}`);
+          else lines.push(`- ${prefix}: ${JSON.stringify(va)}\n+ ${prefix}: ${JSON.stringify(vb)}`);
+        }
+      }
+    }
+    walk('$', a||{}, b||{});
+    return lines.length ? lines.join('\n') : 'No changes.';
+  }
+
+  // ---------- GitHub API ----------
+  async function ghGet(user, repo, path, token){
+    const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, 'Accept':'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(`GET ${res.status}`);
+    return res.json();
+  }
+  async function ghPut(user, repo, path, token, contentB64, sha, message){
+    const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
+    const body = JSON.stringify({ message: message || "mobile: update continuity.json", content: contentB64, sha });
+    const res = await fetch(url, { method:'PUT', headers: { Authorization: `Bearer ${token}`, 'Accept':'application/vnd.github+json' }, body });
+    if (!res.ok) throw new Error(`PUT ${res.status}`);
+    return res.json();
+  }
+
+  // ---------- state ----------
+  let lastLoaded = null;  // object
+  let lastSHA = null;
+  let autoTimer = null;
+
+  function readAuth(){
+    const user = qs('user').value.trim();
+    const repo = qs('repo').value.trim();
+    const path = qs('path').value.trim();
+    const token= qs('token').value.trim();
+    return {user,repo,path,token};
+  }
+
+  function rememberTokenMaybe(){
+    if (qs('remember').checked){
+      try { sessionStorage.setItem('apex_token', qs('token').value.trim()); } catch {}
+    } else {
+      try { sessionStorage.removeItem('apex_token'); } catch {}
     }
   }
 
-  async function tick(){
-    showSpinner(1000); // ~1s
-    const ext = await fetchExternal();
-    liveMode = !!ext;
-    await render(ext || fetchInline());
-    updateAdminAndModeUI(); // refresh pill to reflect mode + enable click
+  function restoreTokenIfAny(){
+    try {
+      const t = sessionStorage.getItem('apex_token');
+      if (t) { qs('token').value = t; qs('remember').checked = true; }
+    } catch {}
   }
 
-  // Expose tiny hooks for Admin/Mode pill
-  window.APEX = {
-    getMode: () => (liveMode ? 'live' : 'inline'),
-    tick
+  // ---------- autosave draft ----------
+  function saveDraft(){
+    try { localStorage.setItem('apex_draft', JSON.stringify(toJSON())); } catch {}
+  }
+  function restoreDraft(){
+    try {
+      const raw = localStorage.getItem('apex_draft');
+      if (raw){
+        const d = JSON.parse(raw);
+        fromJSON(d);
+        toast('Draft restored');
+      }
+    } catch {}
+  }
+
+  // ---------- event wiring ----------
+  qs('stamp').onclick = ()=> { qs('lastUpdated').value = isoNow(); toast('Timestamp set'); };
+  qs('normalizeMomentum').onclick = ()=>{
+    let v = Number(qs('m_score').value||0);
+    if (Number.isNaN(v)) v = 0;
+    qs('m_score').value = Math.max(0, Math.min(100, v));
+    toast('Momentum normalized');
+  };
+  document.querySelectorAll('.bump').forEach(b=>{
+    b.onclick = ()=> {
+      const delta = Number(b.dataset.bump||0);
+      let v = Number(qs('m_score').value||0);
+      v = Math.max(0, Math.min(100, v + delta));
+      qs('m_score').value = v;
+      qs('m_trend').value = (delta>=0?'+':'') + delta.toString();
+      toast(`${delta>=0?'+':''}${delta} momentum`);
+    };
+  });
+
+  qs('resetForks').onclick = ()=> { fillForks(); toast('Forks reset'); };
+  qs('sortForks').onclick = ()=>{
+    const nodes = Array.from(document.querySelectorAll('#forks .fork')).map(node => ({
+      label: node.querySelector('.f_label').value,
+      impact: node.querySelector('.f_impact').value,
+      risk: node.querySelector('.f_risk').value,
+      probability: Number(node.querySelector('.f_prob').value||0)
+    }));
+    nodes.sort((a,b)=> (b.probability||0) - (a.probability||0));
+    fillForks(nodes);
+    toast('Forks sorted by probability');
+  };
+  qs('validateForks').onclick = ()=>{
+    const d = toJSON();
+    const errs = validateDraft(d);
+    setMsg(qs('valMsg'), errs.length? ('Validation: ' + errs.join(' | ')) : 'Validation: OK', errs.length?'err':'ok');
   };
 
-  // Inject Admin badge + Mode pill (and wire click-to-refresh in live)
-  function updateAdminAndModeUI(){
-    const headerRight = document.querySelector('.right');
-    if (!headerRight) return;
+  // Load / Pull / Save / Undo
+  qs('load').onclick = async ()=>{
+    try{
+      setMsg(qs('status'),'Loading…');
+      const {user,repo,path,token} = readAuth();
+      if (!user || !repo || !path || !token) { setMsg(qs('status'),'Fill username, repo, path, token','warn'); return; }
+      rememberTokenMaybe();
 
-    // Clear existing pills/badges (avoid duplicates)
-    headerRight.querySelectorAll('.admin-badge, .mode-pill').forEach(n=>n.remove());
+      const resp = await ghGet(user, repo, path, token);
+      const jsonText = b64decode(resp.content);
+      const data = JSON.parse(jsonText);
+      fromJSON(data);
+      lastLoaded = data;
+      lastSHA = resp.sha;
 
-    // Admin persistence (?admin=1 / ?admin=0)
-    const params = new URLSearchParams(location.search);
-    const adminParam = params.get('admin');
-    if (adminParam === '1') localStorage.setItem('apex_admin', '1');
-    if (adminParam === '0') localStorage.removeItem('apex_admin');
-    const isAdmin = localStorage.getItem('apex_admin') === '1' || adminParam === '1';
+      qs('metaInfo').innerHTML = `<b>Commit:</b> ${resp.sha.slice(0,7)} &nbsp; <b>Size:</b> ${resp.size} &nbsp; <b>Path:</b> ${resp.path}`;
+      setMsg(qs('status'),'Loaded ✓','ok');
+      toast('Loaded');
+      // start/refresh auto-pull
+      setupAutoPull();
+    }catch(e){ console.error(e); setMsg(qs('status'),'Load failed: '+e.message,'err'); }
+  };
 
-    if (isAdmin) {
-      const badge = document.createElement('span');
-      badge.className = 'admin-badge';
-      badge.style.display = 'inline-block';
-      badge.innerHTML = `<a href="updater.html" target="_blank" rel="noopener">Admin</a>`;
-      headerRight.appendChild(badge);
-    }
+  async function pullLatest(){
+    try{
+      const {user,repo,path,token} = readAuth();
+      if (!user || !repo || !path || !token) return;
+      const resp = await ghGet(user, repo, path, token);
+      const data = JSON.parse(b64decode(resp.content));
+      fromJSON(data);
+      lastLoaded = data;
+      lastSHA = resp.sha;
+      qs('metaInfo').innerHTML = `<b>Commit:</b> ${resp.sha.slice(0,7)} &nbsp; <b>Size:</b> ${resp.size} &nbsp; <b>Path:</b> ${resp.path}`;
+      setMsg(qs('status'),'Pulled latest ✓','ok');
+      toast('Latest pulled');
+    }catch(e){ console.warn('Pull latest failed', e.message); }
+  }
 
-    const mode = liveMode ? 'live' : 'inline';
-    const pill = document.createElement('span');
-    pill.className = `mode-pill ${mode === 'live' ? 'mode-live' : 'mode-inline'} tooltip`;
-    pill.innerHTML = `
-      ${mode === 'live' ? 'Mode: Live' : 'Mode: Inline'}
-      <span class="tiptext">${
-        mode === 'live'
-          ? 'Live mode: pulling continuity.json every 3 minutes. Tap to refresh now.'
-          : 'Inline mode: using embedded JSON (use Refresh button).'
-      }</span>
-    `;
-    headerRight.appendChild(pill);
-
-    if (mode === 'live') {
-      pill.style.cursor = 'pointer';
-      pill.addEventListener('click', ()=>{
-        try { tick(); } catch(e) {}
-        pill.style.transform = 'scale(0.98)';
-        setTimeout(()=>{ pill.style.transform = 'scale(1)'; }, 120);
-      });
+  function setupAutoPull(){
+    if (autoTimer) clearInterval(autoTimer);
+    const mins = Math.max(0, Number(qs('autoMin').value || 0));
+    if (mins > 0){
+      autoTimer = setInterval(pullLatest, mins*60*1000);
     }
   }
 
-  // First load
-  tick();
+  qs('pull').onclick = pullLatest;
 
-  // Manual refresh
-  el("refreshBtn").addEventListener("click", tick);
+  function draftAndValidate(){
+    const d = toJSON();
+    const errs = validateDraft(d);
+    return { d, errs };
+  }
 
-  // Auto-refresh (only if external JSON reachable on first check)
-  (async ()=>{
-    const ext = await fetchExternal();
-    liveMode = !!ext;
-    updateAdminAndModeUI();
-    if (liveMode && REFRESH_INTERVAL_MS > 0) {
-      setInterval(tick, REFRESH_INTERVAL_MS);
-    }
-  })();
+  qs('preview').onclick = ()=>{
+    const {d, errs} = draftAndValidate();
+    if (errs.length){ setMsg(qs('valMsg'), 'Validation: '+errs.join(' | '), 'err'); return; }
+    setMsg(qs('valMsg'), 'Validation: OK', 'ok');
+    const before = lastLoaded || {};
+    const delta = diffJSON(before, d);
+    qs('diffBox').innerHTML = delta
+      .replace(/^(\+ .*)$/gm,'<span class="add">$1</span>')
+      .replace(/^(- .*)$/gm,'<span class="del">$1</span>');
+  };
+
+  async function doSave(){
+    const {d, errs} = draftAndValidate();
+    if (errs.length){ setMsg(qs('valMsg'), 'Validation: '+errs.join(' | '), 'err'); return; }
+
+    try{
+      setMsg(qs('status'),'Saving…');
+      const {user,repo,path,token} = readAuth();
+      if (!user || !repo || !path || !token) { setMsg(qs('status'),'Fill username, repo, path, token','warn'); return; }
+      rememberTokenMaybe();
+
+      // ensure timestamp updated
+      if (!d.session.lastUpdated) d.session.lastUpdated = isoNow();
+
+      const payload = JSON.stringify(d, null, 2);
+      const sha = lastSHA || (await ghGet(user, repo, path, token)).sha; // fetch sha if missing
+      const res = await ghPut(user, repo, path, token, b64encode(payload), sha, qs('commitMsg').value || undefined);
+      setMsg(qs('status'), 'Saved ✓ — commit '+ (res.commit?.sha?.slice(0,7) || ''), 'ok');
+      toast('Saved to GitHub');
+
+      // update local state
+      lastLoaded = d;
+      lastSHA = res.content?.sha || res.commit?.sha || null;
+      qs('metaInfo').innerHTML = `<b>Commit:</b> ${(res.commit?.sha||'').slice(0,7)} &nbsp; <b>Path:</b> ${qs('path').value}`;
+    }catch(e){ console.error(e); setMsg(qs('status'),'Save failed: '+e.message,'err'); }
+  }
+
+  qs('save').onclick = doSave;
+  qs('save2').onclick = doSave;
+
+  qs('revert').onclick = ()=>{
+    if (!lastLoaded){ setMsg(qs('status'),'Nothing to revert to','warn'); return; }
+    fromJSON(lastLoaded);
+    setMsg(qs('status'),'Reverted to last loaded ✓','ok');
+  };
+
+  qs('download').onclick = ()=>{
+    const blob = new Blob([ JSON.stringify(toJSON(), null, 2) ], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'continuity.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Downloaded');
+  };
+
+  // autosave draft on changes (lightweight)
+  document.addEventListener('input', ()=>{
+    saveDraft();
+  });
+
+  // init UI
+  fillForks();
+  restoreTokenIfAny();
+  restoreDraft();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+</body>
 </html>
