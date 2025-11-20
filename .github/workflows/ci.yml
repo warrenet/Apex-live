@@ -10,6 +10,8 @@ jobs:
   link-checker:
     runs-on: ubuntu-latest
     name: Check links in HTML
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,6 +39,8 @@ jobs:
   static-checks:
     runs-on: ubuntu-latest
     name: Static site validation
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
