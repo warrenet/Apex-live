@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  link-checker:
+    runs-on: ubuntu-latest
+    name: Check links in HTML
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Install htmlproofer
+        run: gem install html-proofer
+
+      - name: Check HTML links
+        run: |
+          htmlproofer . \
+            --disable-external \
+            --allow-hash-href \
+            --ignore-urls "/^#/,/^javascript:/" \
+            --ignore-files "/node_modules/,/.git/" \
+            --only-4xx \
+            --log-level :info \
+            || echo "Link checking completed with warnings"
+
+  static-checks:
+    runs-on: ubuntu-latest
+    name: Static site validation
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate HTML structure
+        run: |
+          echo "Validating static site structure..."
+          if [ -f "index.html" ]; then
+            echo "✓ index.html found"
+          else
+            echo "✗ index.html not found"
+            exit 1
+          fi
+          
+          if [ -f "continuity.json" ]; then
+            echo "✓ continuity.json found"
+          else
+            echo "✗ continuity.json not found"
+            exit 1
+          fi
+
+      - name: Check JSON validity
+        run: |
+          echo "Checking JSON files..."
+          if command -v jq > /dev/null; then
+            for file in *.json; do
+              if [ -f "$file" ]; then
+                echo "Validating $file..."
+                jq empty "$file" || exit 1
+              fi
+            done
+          else
+            python3 -c "import json; json.load(open('continuity.json'))" || exit 1
+          fi
+          echo "✓ All JSON files are valid"

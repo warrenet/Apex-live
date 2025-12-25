@@ -1,0 +1,10 @@
+# Code owners for Apex-live repository
+# These owners will be automatically requested for review when PRs are opened
+
+# Global ownership - all files in the repository
+* @warrenet
+
+# Specific patterns
+/.github/ @warrenet
+*.html @warrenet
+*.json @warrenet
