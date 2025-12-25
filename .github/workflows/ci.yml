@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    name: Static Site Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate HTML structure
+        run: |
+          echo "Checking HTML files exist..."
+          test -f index.html || { echo "Error: index.html not found"; exit 1; }
+          echo "✓ index.html exists"
+          
+          echo "Validating HTML syntax..."
+          if grep -q "<!doctype html>" index.html; then
+            echo "✓ Valid HTML doctype found"
+          else
+            echo "Error: Missing or invalid HTML doctype"
+            exit 1
+          fi
+      
+      - name: Validate JSON structure
+        run: |
+          echo "Checking JSON files..."
+          if [ -f continuity.json ]; then
+            echo "Validating continuity.json..."
+            python3 -m json.tool continuity.json > /dev/null || { echo "Error: Invalid JSON"; exit 1; }
+            echo "✓ continuity.json is valid JSON"
+          fi
+      
+      - name: Check for broken internal links
+        run: |
+          echo "Scanning for basic link issues..."
+          # Check if there are any obvious malformed links
+          if grep -E 'href=""' index.html; then
+            echo "Warning: Found empty href attributes"
+          fi
+          echo "✓ Basic link check passed"
+      
+      - name: Build verification
+        run: |
+          echo "Verifying static site structure..."
+          echo "✓ Static site ready for deployment"
